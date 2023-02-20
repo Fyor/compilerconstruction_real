@@ -112,4 +112,3 @@ static inline void token_action() {
     yylloc.last_column = yycolumn + yyleng - 1;
     yycolumn += yyleng;
 }
-

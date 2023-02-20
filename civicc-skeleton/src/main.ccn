@@ -3,9 +3,9 @@ start phase EntryPoint {
     
     actions {
         pass SPdoScanParse;
-        StrengthReduction;
-        CountOperators;
-        CountIdentifiers;
+        # StrengthReduction;
+        # CountOperators;
+        # CountIdentifiers;
         Print;
     }
 };
@@ -57,15 +57,25 @@ enum binop_type {
     }
 };
 
+enum basic_type {
+    prefix = BT,
+    values {
+        bool, int, float
+    }
+};
+
+
+
 nodeset Expr = {Num, Float, Bool, Binop, Var};
-nodeset Stmt = {Assign};
+nodeset Stmt = {};
+nodeset Decl = {FunDec, FunDef, GlobalDec, GlobalDef};
 
 // Nodes you want to be able to link to from your symbol table.
 nodeset Link = Expr | Stmt;
 
 root node Module {
     children {
-        Stmts stmts { constructor, mandatory }
+        Decls decls { constructor, mandatory }
     },
 
     attributes {
@@ -142,6 +152,3 @@ node Ste {
 
 }
 */
-
-
-

@@ -1,0 +1,15 @@
+nodeset Expr = {Binop} | Literals;
+
+node Binop {
+    children {
+        Expr left { constructor },
+        Expr right { constructor }
+    }
+};
+
+enum binop_type {
+    prefix = BT,
+    values {
+        add, sub
+    }
+};

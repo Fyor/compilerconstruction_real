@@ -1,0 +1,707 @@
+start phase startPhase {
+    info = "The starting point",
+    uid = RT,
+
+    actions {
+        pass scanAndParse {
+            uid = SP
+        };
+        semantic;
+        unpackLifetimes;
+        dynamicBackend;
+        staticBackend;
+        phaseDriver;
+        genDot;
+        pass genDefines;
+        print;
+    }
+};
+
+cycle opts {
+    info = "Do non existing optimisations.",
+    uid = OPT,
+
+    actions {
+        pass doOpts;
+    }
+};
+
+phase semantic {
+    info = "Main part",
+    uid = SEA,
+
+    actions {
+        buildSymbolTable;
+        checkExistance;
+        unwrapSetExpr;
+        reachability;
+    }
+};
+
+phase unpackLifetimes {
+    info = "Unpack lifetime into their action IDS",
+    uid = ULT,
+
+    actions {
+        traversal checkLifetimes {
+            uid = CLT,
+            nodes = {ast, attribute}
+        };
+
+        traversal assignIdToAction {
+            uid = AITA,
+            nodes = {ast, iactions}
+        };
+
+        traversal mapIdToLifetime {
+            uid = MITL,
+            nodes = {ast, inode, iactions, ilifetime, lifetime_range, id}
+        };
+    }
+};
+
+
+phase phaseDriver {
+    info = "Generate the missing parts of the phase driver",
+
+    actions {
+        genActionArrayHeader;
+        genIdsTables;
+        genActionArray;
+        genGateHeader;
+    }
+};
+
+phase dynamicBackend {
+    info = "Generating part for the dynamic backend",
+    uid = DDB,
+    gate = backendIsDynamic,
+
+    actions {
+        dynamicGenAst;
+        pass dynamicStartEnumHeader;
+        dynamicGenEnum;
+        dynamicGenEnumValues;
+        dynamicGenTravData;
+        pass dynamicStartTableGen;
+        dynamicGenTravVtable;
+        dynamicGenPassTable;
+        dynamicGenSystemTraversals;
+        dynamicGenTravTable;
+        dynamicGenTravDataTables;
+        dynamicGenActionsHeader;
+        dynamicGenCopyTraversal;
+        dynamicGenFreeTraversal;
+        dynamicGenCheckTraversal;
+        dynamicGenUserFiles;
+        dynamicGenTravFunctions;
+    }
+};
+
+phase staticBackend {
+    info = "Generating part for the static backend",
+    uid = STB,
+    gate = backendIsStatic,
+
+    actions {
+        staticGenAst;
+    }
+};
+
+phase staticGenAst {
+    actions {
+        traversal staticGenNodeStructs {
+            uid = sgns,
+            nodes = {ast, inode, child, attribute, inodeset, setliteral}
+        };
+    }
+};
+
+phase dynamicGenTravData {
+    info = "Generate the trav data requirements.",
+    uid = DGTD,
+
+    actions {
+        pass dynamicStartTravData;
+        dynamicGenTravDataStructs;
+        dynamicGenTravDataUnion;
+        dynamicGenTravDataGetters;
+        dynamicGenTravDataCtorsHeader;
+        pass dynamicSwitchTravData;
+        dynamicGenTravDataCtors;
+    }
+};
+
+phase dynamicGenAst {
+    info = "Generate the required files for managing user nodes and AST manipulation",
+    uid = DGA,
+
+    actions {
+        pass dynamic_start_ast_header;
+        dynamicGenNodeStructs;
+        dynamicGenNodeMacros;
+        dynamicGenNodeInitFunctions;
+        dynamicGenNodeUnion;
+        pass dynamicGenBaseNode;
+        pass dynamicSwitchToAstSource;
+        pass dynamicGenBaseNodeInit;
+        dynamicGenNodeConstructor;
+    }
+};
+
+phase dynamicGenUserFiles {
+    info = "Generate base files for defenition the user needs to give.",
+    uid = DGUF,
+    actions {
+        traversal dynamicUserGenPasses {
+            uid = DUGP,
+            nodes = {
+                ipass, ast
+            }
+        };
+
+        traversal dynamicUserGenTraversals {
+            uid = DUGT,
+            nodes = {
+                ast, itraversal, inode, id
+            }
+        };
+    }
+};
+
+traversal genDot {
+    info = "Generate a dot diagram of the AST.",
+    uid = GD,
+
+    nodes = {inode, child, ast, inodeset, setliteral, attribute}
+};
+
+traversal dynamicGenTravDataTables {
+    uid = DGTDT,
+    nodes = {ast, itraversal},
+
+    travdata {
+        user fileptr file,
+        int in_init_round,
+        uint64 indent
+    }
+};
+
+traversal genGateHeader {
+    info = "Generate extern for gate functions",
+    uid = GGH,
+    nodes = {ast, iphase}
+
+};
+
+traversal genIdsTables {
+    uid = GIT,
+
+    nodes = {
+        ast, iphase, iactions
+    }
+};
+
+traversal genActionArrayHeader {
+    uid = GAAH,
+
+    nodes = action | {ast} | {ast}
+};
+
+traversal genActionArray {
+    uid = GAA,
+
+    nodes = action | {ast}
+};
+
+traversal dynamicGenTravFunctions {
+    uid = DGT_F,
+    nodes = {ast, inode, child},
+
+    travdata {
+        inode curr_node
+    }
+};
+
+traversal dynamicGenTravDataUnion {
+    uid = DGTDU,
+    nodes = {ast, itraversal}
+};
+
+traversal dynamicGenTravDataGetters {
+    uid = DGTDG,
+    nodes = {itraversal}
+};
+
+traversal dynamicGenTravDataCtorsHeader {
+    uid = DGTDCH,
+    nodes = {itraversal}
+};
+
+traversal dynamicGenTravDataCtors {
+    uid = DGTDC,
+    nodes = {itraversal, itravdata}
+};
+
+traversal dynamicGenTravDataStructs {
+    uid = DGTDS,
+    nodes = {ast, itraversal, itravdata}
+};
+
+traversal dynamicGenCheckTraversal {
+    uid = DGCHT,
+
+    travdata {
+        int lifetime_target
+    }
+};
+
+
+traversal dynamicGenFreeTraversal {
+    uid = DGFT
+};
+
+traversal dynamicGenConstructorCall {
+    uid = DGCC,
+
+    nodes = {ast, inode, child, attribute}
+};
+
+traversal dynamicGenCopyTraversal {
+    uid = DGCT
+};
+
+traversal dynamicGenTravActions {
+    uid = DGTA,
+
+    nodes = {ast, inode}
+};
+
+traversal dynamicGenActionsHeader {
+    uid = DGAH,
+
+    nodes = {itraversal, ipass, ast, inode, setliteral, id}
+};
+
+traversal dynamicGenSystemTraversals {
+    uid = DGST,
+
+    nodes = {ast, inode}
+};
+
+traversal dynamicGenTravTable {
+    uid = DGTT,
+
+    nodes = {ast, itraversal}
+};
+
+traversal dynamicGenPassTable {
+    uid = DGPT,
+
+    nodes = {ast, ipass}
+};
+
+traversal dynamicGenNodesForTravTable {
+    uid = DGNFTT,
+
+    nodes = {ast, inode}
+};
+
+traversal dynamicGenTravVtable {
+    uid = DGTV,
+
+    nodes = {itraversal, ast}
+};
+
+traversal dynamicGenEnumValues {
+    uid = DGEV,
+
+    nodes = {ienum, ast, id}
+};
+
+traversal dynamicGenEnum {
+    uid = DGE,
+
+    nodes = {ast, inode, itraversal, inodeset, ipass}
+};
+
+traversal dynamicGenNodeConstructor {
+    uid = DGNC,
+    nodes = {ast, inode, child, attribute}
+};
+
+traversal dynamicGenNodeUnion {
+    uid = DGBU,
+
+    nodes = {ast, inode}
+};
+
+traversal dynamicGenNodeInitFunctions {
+    uid = DGIF,
+
+    nodes = {ast, inode, child, attribute}
+};
+
+
+traversal dynamicGenNodeStructs {
+    uid = DGNS,
+
+    nodes = {ast, inode, child, attribute}
+};
+
+traversal dynamicGenNodeMacros {
+    uid = DGNM,
+
+    nodes = {ast, inode, child, attribute}
+};
+
+
+traversal checkExistance {
+    uid = CEX
+};
+
+traversal buildSymbolTable {
+    uid = BST
+};
+
+traversal unwrapSetExpr {
+    uid = USE,
+    nodes = setexpr | {ast}
+};
+
+traversal reachability {
+    uid = RCB,
+
+    nodes = {
+        ast, setliteral, itraversal, inode, child, inodeset
+    }
+};
+
+traversal setliteralInsert {
+    uid = SLI,
+    nodes = {
+        setliteral
+    },
+
+    travdata {
+	    setliteral value,
+        bool inserted
+    }
+};
+
+traversal setliteralUnion {
+    uid = SLU,
+    nodes = {
+        setliteral
+    },
+
+    travdata {
+        setliteral dst
+    }
+};
+
+
+traversal setliteralIntersect {
+    uid = SLIS,
+    nodes = {
+        setliteral
+    },
+
+    travdata {
+        setliteral src,
+        setliteral new
+    }
+};
+
+traversal setliteralDifference {
+    uid = SLD,
+    nodes = {
+        setliteral
+    },
+
+    travdata {
+        setliteral right,
+        setliteral new
+    }
+};
+
+traversal setliteralContains {
+    uid = SLC,
+    nodes = { setliteral },
+    travdata {
+        id lookup,
+        bool contains
+    }
+};
+
+traversal print {
+    info = "Print the ast",
+    uid = PRT
+};
+
+root node ast {
+    children {
+        iphase iphases,
+        itraversal itraversals,
+        ipass ipasses,
+        inode inodes,
+        inodeset inodesets,
+        ienum enums,
+        ste stable
+    },
+    attributes {
+        int num_traversals,
+        int num_nodes,
+        inode root_node,
+        iphase start_phase,
+        bool uses_unsafe
+    }
+};
+
+nodeset action = { iphase, itraversal, ipass};
+nodeset link = action | {inode, id};
+
+node iactions {
+    children {
+        id reference,
+        iactions next
+    },
+    attributes {
+        int action_id
+    }
+};
+
+node iphase {
+    children {
+        id name { constructor },
+	    id iprefix,
+        id gate_func,
+        iactions iactions {mandatory },
+        iphase next
+    },
+    attributes {
+        int is_start { constructor },
+        int is_cycle,
+        string iinfo
+    }
+};
+
+node itraversal {
+    children {
+        id name { constructor },
+        id iprefix,
+        setexpr inodes,
+        itravdata data,
+        itraversal next
+    },
+    attributes {
+        int index,
+        string iinfo
+    }
+};
+
+node ipass {
+    children {
+        id name { constructor },
+        id iprefix,
+        id target_func,
+        ipass next
+    },
+    attributes {
+        string iifno { constructor }
+    }
+};
+
+node inode {
+    children {
+        id name { constructor, mandatory },
+        inode next,
+        child ichildren,
+        attribute iattributes,
+        ilifetime lifetimes
+    },
+
+    attributes {
+        string iifno { constructor },
+        int is_root,
+        int index
+    }
+};
+
+node inodeset {
+    children {
+        id name,
+        setexpr expr,
+        id unpacked,
+        inodeset next
+    },
+
+    attributes {
+        string iinfo
+    }
+};
+
+enum lifetime_type {
+    prefix = LT,
+    values {
+        disallowed, mandatory, optional, allowed
+    }
+};
+
+node ilifetime {
+    children {
+        lifetime_range begin,
+        lifetime_range end,
+        ilifetime next
+    },
+
+    attributes {
+        lifetime_type type
+    }
+};
+
+node lifetime_range {
+    children {
+        id target
+    },
+
+    attributes {
+        bool inclusive,
+        int action_id,
+        int next_action_id
+    }
+};
+
+enum child_type {
+    prefix = CT,
+    values {
+        inode, inodeset
+    }
+};
+
+node child {
+    children {
+        id name { constructor, mandatory },
+        ilifetime lifetimes,
+        child next,
+        id type_reference
+    },
+
+    attributes {
+        child_type type,
+        int in_constructor,
+        int is_mandatory
+    }
+};
+
+node ste {
+    children {
+        ste next
+    },
+    attributes {
+        id key,
+        link value { mandatory (buildSymbolTable -> )}
+    }
+};
+
+enum attribute_type {
+    prefix = AT,
+    values {
+        user, link, link_or_enum, int, string, bool, int8, int16, int32, int64, float, double, uint, uint8, uint16, uint32, uint64
+    }
+};
+
+enum setoperation_type {
+    prefix = SO,
+    values {
+        iunion, intersect, difference
+    }
+};
+
+node setreference {
+    children {
+        id reference
+    },
+
+    lifetime {
+        allowed (-> semantic] // Same as disallowed (semantic ->)
+    }
+};
+
+node setliteral {
+    children {
+        id reference {constructor},
+        setliteral left,
+        setliteral right
+    }
+};
+
+node setoperation {
+    children {
+        setexpr left {constructor, mandatory},
+        setexpr right {constructor, mandatory }
+    },
+    attributes {
+        setoperation_type type { constructor }
+    },
+    lifetime {
+        disallowed (semantic ->)
+    }
+};
+
+nodeset setexpr = {setoperation, setreference, setliteral};
+
+node itravdata {
+    children {
+        id name { constructor, mandatory },
+        id type_reference,
+        itravdata next
+    },
+
+    attributes {
+        attribute_type type,
+        string include_file
+    }
+};
+
+node attribute {
+    children {
+        id name {mandatory },
+        id type_reference,
+        ilifetime lifetimes,
+        attribute next
+    },
+
+    attributes {
+        attribute_type type,
+        int in_constructor
+    }
+};
+
+node ienum {
+    children {
+        id Vals {constructor},
+        id name {constructor},
+        id iprefix {constructor},
+        ienum next
+    },
+
+    attributes {
+        string iinfo { constructor }
+    }
+};
+
+node id {
+    children {
+        id next
+    },
+
+    attributes {
+        string orig { constructor, mandatory },
+        string lwr { constructor, mandatory },
+        string Upr { constructor, mandatory },
+        int row,
+        int col_begin,
+        int col_end
+    }
+};

@@ -1,0 +1,8 @@
+*.o
+*.o.*
+*.out
+*.log
+/civicc-skeleton/CMakeFiles/
+/civicc-skeleton/ccngen/
+/civicc-skeleton/coconut/build/
+/civicc-skeleton/build-debug/

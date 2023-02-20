@@ -79,6 +79,31 @@ int yycolumn = 1;
 
 [ \t]                      { global.col += yyleng;
                            } 
+
+"do"                       { FILTER(DO); }
+
+"while"                    { FILTER(WHILE); }
+
+"if"                       { FILTER(IF); }
+
+"else"                     { FILTER(IF); }
+
+"for"                      { FILTER(FOR); }
+
+"int"                      { FILTER(INT); }
+
+"float"                    { FILTER(FLOAT); }
+
+"bool"                     { FILTER(BOOL); }
+
+"extern"                   { FILTER(EXTERN); }
+
+"export"                   { FILTER(EXPORT); }
+
+"return"                   { FILTER(RETURN); }
+
+"void"                     { FILTER(VOID); }
+
 %%
 
 static inline void token_action() {

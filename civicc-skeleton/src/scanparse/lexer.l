@@ -37,8 +37,15 @@ int yycolumn = 1;
 
 %%
 
+"/*" ( [^*] | (\*+[^*/]) )* \*+\/           { FILTER(MULTILINE_COMMENT); }
+"//".*$                                     { FILTER(SINGLELINE_COMMENT); }
+
 "("                        { FILTER( BRACKET_L); }
 ")"                        { FILTER( BRACKET_R); }
+"{"                        { FILTER( CBRACKET_L); }
+"}"                        { FILTER( CBRACKET_R); }
+"["                        { FILTER( SBRACKET_L); }
+"]"                        { FILTER( SBRACKET_R); }
 ","                        { FILTER( COMMA); }
 ";"                        { FILTER( SEMICOLON); }
 
@@ -66,7 +73,7 @@ int yycolumn = 1;
                              FILTER( ID);
                            }
 
-[0-9]+                     { yylval.cint=atoi(yytext);
+0|([-]?[1-9][0-9]*)        { yylval.cint=atoi(yytext);
                              FILTER( NUM);
                            }
 

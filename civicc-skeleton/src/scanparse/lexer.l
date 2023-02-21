@@ -36,9 +36,9 @@ int yycolumn = 1;
 
 
 %%
-
-"/*" ( [^*] | (\*+[^*/]) )* \*+\/           { FILTER(MULTILINE_COMMENT); }
-"//".*$                                     { FILTER(SINGLELINE_COMMENT); }
+<INITIAL>{
+"/*"                       { global.col += yyleng; BEGIN(IN_COMMENT); }
+"//".*$                    { FILTER(COMMENT); }
 
 "("                        { FILTER( BRACKET_L); }
 ")"                        { FILTER( BRACKET_R); }
@@ -111,6 +111,13 @@ int yycolumn = 1;
 
 "void"                     { FILTER(VOID); }
 
+}
+<IN_COMMENT>{
+            "*/"      { BEGIN(INITIAL); FILTER(COMMENT); }
+            [^*\n]+   { global.col += yyleng; }
+            "*"       { global.col += yyleng; }
+            \n        { yylineno++; }
+}
 %%
 
 static inline void token_action() {

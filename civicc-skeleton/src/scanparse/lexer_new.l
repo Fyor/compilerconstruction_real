@@ -34,11 +34,19 @@ int yycolumn = 1;
 %option nounput
 %option yylineno
 
+%x IN_COMMENT
 
 %%
+<INITIAL>{
+"/*"                       { BEGIN(IN_COMMENT); }
+
 
 "("                        { FILTER( BRACKET_L); }
 ")"                        { FILTER( BRACKET_R); }
+"{"                        { FILTER( CBRACKET_L); }
+"}"                        { FILTER( CBRACKET_R); }
+"["                        { FILTER( SBRACKET_L); }
+"]"                        { FILTER( SBRACKET_R); }
 ","                        { FILTER( COMMA); }
 ";"                        { FILTER( SEMICOLON); }
 
@@ -66,9 +74,38 @@ int yycolumn = 1;
                              FILTER( ID);
                            }
 
-[0-9]+                     { yylval.cint=atoi(yytext);
+0|([-]?[1-9][0-9]*)        { yylval.cint=atoi(yytext);
                              FILTER( NUM);
                            }
+
+
+
+[ \t]                      { global.col += yyleng;
+                           }
+
+"do"                       { FILTER( DO); }
+
+"while"                    { FILTER(WHILE); }
+
+"if"                       { FILTER(IF); }
+
+"else"                     { FILTER(IF); }
+
+"for"                      { FILTER(FOR); }
+
+"int"                      { FILTER(INT); }
+
+"float"                    { FILTER(FLOAT); }
+
+"bool"                     { FILTER(BOOL); }
+
+"extern"                   { FILTER(EXTERN); }
+
+"export"                   { FILTER(EXPORT); }
+
+"return"                   { FILTER(RETURN); }
+
+"void"                     { FILTER(VOID); }
 
 \n.*                       { 
                              yycolumn = 1;
@@ -77,8 +114,13 @@ int yycolumn = 1;
                              yyless(1);
                            }
 
-[ \t]                      { global.col += yyleng;
-                           } 
+}
+<IN_COMMENT>{
+            "*/"      { BEGIN(INITIAL); FILTER(COMMENT); }
+            [^*\n]+   { global.col += yyleng; }
+            "*"       { global.col += yyleng; }
+            \n        { yylineno++; }
+}
 %%
 
 static inline void token_action() {
@@ -87,4 +129,3 @@ static inline void token_action() {
     yylloc.last_column = yycolumn + yyleng - 1;
     yycolumn += yyleng;
 }
-

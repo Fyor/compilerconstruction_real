@@ -25,7 +25,7 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
  char               *id;
  int                 cint;
  float               cflt;
- enum binop_type     cbinop;
+ enum BinOpEnum     cbinop;
  node_st             *node;
 }
 
@@ -40,18 +40,34 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 %token <id> ID
 
 %type <node> intval floatval boolval constant expr
-%type <node> stmts stmt assign varlet program
+%type <node> stmts stmt assign varlet program decls decl
 %type <cbinop> binop
 
 %start program
 
 %%
 
-program: stmts
+program: decls
          {
-           parseresult = ASTmodule($1);
+           parseresult = ASTprogram($1);
          }
          ;
+
+decls: decl decls
+        {
+          $$ = ASTdecls($1, $2);
+        }
+        | decl
+        {
+          $$ = ASTdecls($1, NULL);
+        }
+        ;
+
+decl: fundef
+        {
+          $$ = ASTdecl($1);
+        }
+        ;
 
 stmts: stmt stmts
         {

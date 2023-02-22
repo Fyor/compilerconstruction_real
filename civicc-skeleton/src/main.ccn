@@ -1,55 +1,32 @@
-start phase EntryPoint {
-    info = "Denotes the entry point of your compiler",
-    
+start phase RootPhase {
     actions {
         pass SPdoScanParse;
-        # StrengthReduction;
-        # CountOperators;
-        # CountIdentifiers;
-        Print;
+        print;
     }
 };
 
-traversal StrengthReduction {
-    uid = SR,
-    nodes = { Binop }
-};
 
-traversal CountOperators {
-    uid = CO,
-    nodes = { Module, Binop },
-    travdata {
-        int sumAdd,
-        int sumSub,
-        int sumMul,
-        int sumDiv,
-        int sumMod
-    }
-};
-
-traversal CountIdentifiers {
-    uid = CI,
-    nodes = { Module, VarLet, Var },
-    travdata {
-        user htable_ptr id_table
-    }
-};
 
 traversal Print {
     uid = PRT
 };
 
+enum Type {
+    // T_ collides with bison/flex generated stuff.
+    prefix = CT,
+    values {
+        int, float, bool, void
+    }
+};
 
-/*** AST ***/
-
-enum monop_type {
+enum MonOpEnum {
     prefix = MO,
     values {
         not, neg
     }
 };
 
-enum binop_type {
+enum BinOpEnum {
     prefix = BO,
     values {
         add, sub, mul, div, mod, lt, le, gt, ge, eq, ne,
@@ -57,33 +34,199 @@ enum binop_type {
     }
 };
 
-enum basic_type {
-    prefix = BT,
-    values {
-        bool, int, float
+
+nodeset Constants = {Float, Bool, Num};
+
+nodeset Operations = {Binop, Monop};
+
+nodeset Decl = {GlobDef, GlobDecl, FunDef};
+
+nodeset Vars = {VarDecl, Var, VarLet};
+
+nodeset Expr = {Cast, FunCall, Var, ArrExpr} | (Constants | Operations);
+
+nodeset Stmt = {Assign, ExprStmt, IfElse, While, DoWhile, For, Return};
+
+// Link you need to adapt.
+// In the old framework it points to node* (so can be everything).
+// You need to adapt it when working with the symbol tables.
+// I put it as a decl now, because an empty nodeset is not allowed.
+nodeset Link = Decl;
+
+root node Program {
+    children {
+        Decls decls { constructor, mandatory }
     }
 };
 
-
-
-nodeset Expr = {Num, Float, Bool, Binop, Var};
-nodeset Stmt = {};
-nodeset Decl = {FunDec, FunDef, GlobalDec, GlobalDef};
-
-// Nodes you want to be able to link to from your symbol table.
-nodeset Link = Expr | Stmt;
-
-root node Module {
+node Decls {
     children {
-        Decls decls { constructor, mandatory }
+        Decl decl { constructor, mandatory },
+        Decls next { constructor }
+    }
+};
+
+node Exprs {
+    children {
+        Expr expr { constructor, mandatory },
+        Exprs next { constructor }
+    }
+};
+
+node ArrExpr {
+    children {
+        Exprs exprs { constructor, mandatory }
+    }
+};
+
+node Ids {
+    children {
+        Ids next   
+    },
+    attributes {
+        string name
+    }
+};
+
+node ExprStmt {
+    children {
+        Expr expr { constructor, mandatory }
+    }
+};
+
+node Return {
+    children {
+        Expr expr
+    }
+};
+
+node FunCall {
+    children {
+        Exprs args
+    },
+    attributes {
+        string name,
+        Link decl
+    }
+};
+
+node Cast {
+    children {
+        Expr expr {constructor, mandatory }
+    }, 
+    attributes {
+        Type type
+    }
+};
+
+node FunDefs {
+    children {
+        FunDef fundef { constructor, mandatory },
+        FunDefs next
+    }
+};
+
+node FunDef {
+    children {
+        FunBody body,
+        Param params
+    },
+    attributes {
+        Type type,
+        string name,
+        bool export 
+    }
+};
+
+node FunBody {
+    children {
+        VarDecl decls,
+        FunDefs local_fundefs,
+        Stmts stmts
+    }
+};
+
+node IfElse {
+    children {
+        Expr cond { constructor, mandatory },
+        Stmts then,
+        Stmts else_block
+    }
+};
+
+node While {
+    children {
+        Expr cond { constructor, mandatory },
+        Stmts block
+    }
+};
+
+node DoWhile {
+    children {
+        Expr cond { constructor, mandatory },
+        Stmts block
+    }
+};
+
+node For {
+    children {
+        Expr start_expr { constructor, mandatory },
+        Expr stop { constructor, mandatory },
+        Expr step,
+        Stmts block
     },
 
     attributes {
-        int sumAdd,
-        int sumSub,
-        int sumMul,
-        int sumDiv,
-        int sumMod
+        string var
+    }
+};
+
+node GlobDecl {
+    children {
+        Ids dims
+    },
+
+    attributes {
+        Type type,
+        string name
+    }
+};
+
+node GlobDef {
+    children {
+        Exprs dims,
+        Expr init
+    },
+
+    attributes {
+        Type type,
+        string name,
+        bool export
+    }
+};
+
+node Param {
+    children {
+        Ids dims,
+        Param next
+    },
+
+    attributes {
+        string name,
+        Type type
+    }
+};
+
+node VarDecl {
+    children {
+        Exprs dims,
+        Expr init,
+        VarDecl next
+    },
+
+    attributes {
+        string name,
+        Type type
     }
 };
 
@@ -103,25 +246,42 @@ node Assign {
 
 node Binop {
     children {
-        Expr left  { constructor, mandatory },
+        Expr left { constructor, mandatory },
         Expr right { constructor, mandatory }
-    },
-    
+    }, 
+
     attributes {
-        binop_type type { constructor }
+        BinOpEnum op { constructor }
     }
 };
 
-// Variable in assignment.
+node Monop {
+    children {
+        Expr operand { constructor, mandatory }
+    },
+
+    attributes {
+        MonOpEnum op { constructor }
+    }
+};
+
 node VarLet {
+    children {
+        Exprs indices
+    }, 
+
     attributes {
         string name { constructor },
         Link decl
     }
 };
 
-// Variable in an expression.
+
 node Var {
+    children {
+        Exprs indices
+    }, 
+
     attributes {
         string name { constructor },
         Link decl
@@ -145,10 +305,3 @@ node Bool {
         bool val { constructor }
     }
 };
-
-/* Symbol table entry
- * TODO: fill in.
-node Ste {
-
-}
-*/

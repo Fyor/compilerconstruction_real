@@ -37,6 +37,31 @@ int yycolumn = 1;
 
 %%
 
+
+"int"                      { FILTER(INT); }
+
+"do"                       { FILTER( DO); }
+
+"while"                    { FILTER(WHILE); }
+
+"if"                       { FILTER(IF); }
+
+"else"                     { FILTER(ELSE); }
+
+"for"                      { FILTER(FOR); }
+
+"float"                    { FILTER(FLOAT); }
+
+"bool"                     { FILTER(BOOL); }
+
+"extern"                   { FILTER(EXTERN); }
+
+"export"                   { FILTER(EXPORT); }
+
+"return"                   { FILTER(RETURN); }
+
+"void"                     { FILTER(VOID); }
+
 "("                        { FILTER( BRACKET_L); }
 ")"                        { FILTER( BRACKET_R); }
 ","                        { FILTER( COMMA); }
@@ -70,6 +95,11 @@ int yycolumn = 1;
                              FILTER( NUM);
                            }
 
+
+[0-9]+\.[0-9]+              {yylval.cflt = atof(yytext); // TODO
+                             FILTER(FLT); }
+
+
 \n.*                       { 
                              yycolumn = 1;
                              global.line += 1;
@@ -79,6 +109,7 @@ int yycolumn = 1;
 
 [ \t]                      { global.col += yyleng;
                            } 
+
 %%
 
 static inline void token_action() {

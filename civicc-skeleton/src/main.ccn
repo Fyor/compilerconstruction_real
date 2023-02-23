@@ -55,7 +55,8 @@ nodeset Link = Decl;
 
 root node Program {
     children {
-        Decls decls { constructor, mandatory }
+        //Decls decls { constructor, mandatory }
+        VarDecl decl { constructor, mandatory }
     }
 };
 
@@ -219,14 +220,14 @@ node Param {
 
 node VarDecl {
     children {
-        Exprs dims,
-        Expr init,
-        VarDecl next
+        VarDecl next {constructor},
+        Expr init {constructor},
+        Exprs dims {constructor}
     },
 
     attributes {
-        string name,
-        Type type
+        Type type { constructor },
+        string name { constructor, mandatory }
     }
 };
 

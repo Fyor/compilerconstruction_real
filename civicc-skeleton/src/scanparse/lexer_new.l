@@ -89,7 +89,7 @@ int yycolumn = 1;
 
 "if"                       { FILTER(IF); }
 
-"else"                     { FILTER(IF); }
+"else"                     { FILTER(ELSE); }
 
 "for"                      { FILTER(FOR); }
 

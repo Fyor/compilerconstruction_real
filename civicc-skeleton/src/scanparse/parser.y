@@ -25,144 +25,78 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
  char               *id;
  int                 cint;
  float               cflt;
- enum BinOpEnum     cbinop;
+ bool                cbool;
+ enum BinOpEnum      cbinop;
+ enum Type           ctype;
  node_st             *node;
 }
 
 %locations
 
-%token BRACKET_L BRACKET_R COMMA SEMICOLON
+%token BRACKET_L BRACKET_R SBRACKET_L SBRACKET_R CBRACKET_L CBRACKET_R COMMA SEMICOLON
 %token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
 %token TRUEVAL FALSEVAL LET
+%token INT FLOAT VOID BOOL EXTERN EXPORT DO WHILE IF ELSE FOR RETURN
+
 
 %token <cint> NUM
-%token <cflt> FLOAT
+%token <cflt> FLT
+%token <cbool> BL
 %token <id> ID
 
-%type <node> intval floatval boolval constant expr
-%type <node> stmts stmt assign varlet program decls decl
-%type <cbinop> binop
+%type <node> vardecl expr constant
+%type <ctype> type
 
 %start program
 
 %%
 
-program: decls
-         {
-           parseresult = ASTprogram($1);
-         }
-         ;
+program: vardecl {
+    parseresult = ASTprogram($1);
+};
 
-decls: decl decls
-        {
-          $$ = ASTdecls($1, $2);
-        }
-        | decl
-        {
-          $$ = ASTdecls($1, NULL);
-        }
-        ;
-
-decl: fundef
-        {
-          $$ = ASTdecl($1);
-        }
-        ;
-
-stmts: stmt stmts
-        {
-          $$ = ASTstmts($1, $2);
-        }
-      | stmt
-        {
-          $$ = ASTstmts($1, NULL);
-        }
-        ;
-
-stmt: assign
-       {
-         $$ = $1;
-       }
-       ;
-
-assign: varlet LET expr SEMICOLON
-        {
-          $$ = ASTassign($1, $3);
-        }
-        ;
-
-varlet: ID
-        {
-          $$ = ASTvarlet($1);
-          AddLocToNode($$, &@1, &@1);
-        }
-        ;
-
+// arguments: next, init, dims, type, name
+vardecl: vardecl type ID SEMICOLON
+    {
+        $$ = ASTvardecl($1, NULL, NULL, $2, $3);
+    }
+    |  vardecl type ID LET expr SEMICOLON
+    {
+        $$ = ASTvardecl($1, $5, NULL, $2, $3);
+    }
+    | type ID SEMICOLON {
+        $$ = ASTvardecl(NULL, NULL, NULL, $1, $2);
+    }
+    | type ID LET expr SEMICOLON
+    {
+        $$ = ASTvardecl(NULL, $4, NULL, $1, $2);
+    };
 
 expr: constant
       {
         $$ = $1;
-      }
-    | ID
-      {
-        $$ = ASTvar($1);
-      }
-    | BRACKET_L expr[left] binop[type] expr[right] BRACKET_R
-      {
-        $$ = ASTbinop( $left, $right, $type);
-        AddLocToNode($$, &@left, &@right);
-      }
-    ;
+      };
 
-constant: floatval
+constant: FLT
           {
-            $$ = $1;
+            $$ = ASTfloat($1);
           }
-        | intval
+        | NUM
           {
-            $$ = $1;
+            $$ = ASTnum($1);
           }
-        | boolval
+        | BL
           {
-            $$ = $1;
-          }
-        ;
+            $$ = ASTbool($1);
+          };
 
-floatval: FLOAT
-           {
-             $$ = ASTfloat($1);
-           }
-         ;
 
-intval: NUM
-        {
-          $$ = ASTnum($1);
-        }
-      ;
 
-boolval: TRUEVAL
-         {
-           $$ = ASTbool(true);
-         }
-       | FALSEVAL
-         {
-           $$ = ASTbool(false);
-         }
-       ;
 
-binop: PLUS      { $$ = BO_add; }
-     | MINUS     { $$ = BO_sub; }
-     | STAR      { $$ = BO_mul; }
-     | SLASH     { $$ = BO_div; }
-     | PERCENT   { $$ = BO_mod; }
-     | LE        { $$ = BO_le; }
-     | LT        { $$ = BO_lt; }
-     | GE        { $$ = BO_ge; }
-     | GT        { $$ = BO_gt; }
-     | EQ        { $$ = BO_eq; }
-     | OR        { $$ = BO_or; }
-     | AND       { $$ = BO_and; }
-     ;
+type: INT { $$ = CT_int; }
+    | FLOAT { $$ = CT_float; }
+    | BOOL { $$ = CT_bool; }
+    | VOID { $$ = CT_void; };
 
 %%
 

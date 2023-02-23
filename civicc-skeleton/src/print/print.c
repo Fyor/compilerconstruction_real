@@ -6,6 +6,7 @@
  *
  *
  */
+#include "stdio.h"
 
 #include "ccn/ccn.h"
 #include "ccngen/ast.h"
@@ -15,6 +16,7 @@
  */
 node_st *PRTprogram(node_st *node)
 {
+  TRAVchildren(node);
   return node;
 }
 
@@ -39,6 +41,7 @@ node_st *PRTexprs(node_st *node)
  */
 node_st *PRTarrexpr(node_st *node)
 {
+  TRAVchildren(node);
   return node;
 }
 
@@ -167,6 +170,11 @@ node_st *PRTparam(node_st *node)
  */
 node_st *PRTvardecl(node_st *node)
 {
+  TRAVchildren(node);
+  char *name = VARDECL_NAME(node);
+  enum Type type = VARDECL_TYPE(node);
+
+  printf("Name: %s, type: %d\n", name, type);
   return node;
 }
 
@@ -223,6 +231,7 @@ node_st *PRTvar(node_st *node)
  */
 node_st *PRTnum(node_st *node)
 {
+  printf("numval = %d\n", NUM_VAL(node));
   return node;
 }
 
@@ -231,6 +240,7 @@ node_st *PRTnum(node_st *node)
  */
 node_st *PRTfloat(node_st *node)
 {
+  printf("floatval = %f\n", FLOAT_VAL(node));
   return node;
 }
 
@@ -239,5 +249,6 @@ node_st *PRTfloat(node_st *node)
  */
 node_st *PRTbool(node_st *node)
 {
+  printf("boolval = %d\n", (int)BOOL_VAL(node));
   return node;
 }

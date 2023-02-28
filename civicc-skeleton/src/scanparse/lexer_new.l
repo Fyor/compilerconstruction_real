@@ -67,8 +67,11 @@ int yycolumn = 1;
 
 "="                        { FILTER( LET);    }
 
-"true"                     { FILTER( TRUEVAL); }
-"false"                    { FILTER( FALSEVAL); }
+"true"                     { yylval.cbool = true;
+                             FILTER( TRUEVAL); }
+
+"false"                    { yylval.cbool = false;
+                             FILTER( FALSEVAL); }
 
 [A-Za-z][A-Za-z0-9_]*      { yylval.id = STRcpy(yytext);
                              FILTER( ID);
@@ -80,8 +83,7 @@ int yycolumn = 1;
 
 
 
-[ \t]                      { global.col += yyleng;
-                           }
+[ \t]                      { global.col += yyleng; }
 
 "do"                       { FILTER( DO); }
 

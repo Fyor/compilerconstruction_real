@@ -1,2 +1,0 @@
-int g = 3;
-float f = 6.6;

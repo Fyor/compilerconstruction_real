@@ -199,6 +199,9 @@ node_st *PRTassign(node_st *node)
  */
 node_st *PRTbinop(node_st *node)
 {
+  TRAVchildren(node);
+
+  printf("%d: INSIDEBINOP\n", BINOP_OP(node));
   return node;
 }
 
@@ -207,6 +210,7 @@ node_st *PRTbinop(node_st *node)
  */
 node_st *PRTmonop(node_st *node)
 {
+  printf("INSIDEnoNOP\n");
   return node;
 }
 

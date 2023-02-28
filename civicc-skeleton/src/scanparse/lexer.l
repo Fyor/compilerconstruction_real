@@ -78,6 +78,7 @@ int yycolumn = 1;
 ">="                       { FILTER( GE);    }
 ">"                        { FILTER( GT);    }
 "=="                       { FILTER( EQ);    }
+"!"                        { FILTER( NOT);    }
 "!="                       { FILTER( NE);    }
 "&&"                       { FILTER( AND);    }
 "||"                       { FILTER( OR);    }
@@ -91,12 +92,12 @@ int yycolumn = 1;
                              FILTER( ID);
                            }
 
-[0-9]+                     { yylval.cint=atoi(yytext);
+[-]?[0-9]+                     { yylval.cint=atoi(yytext);
                              FILTER( NUM);
                            }
 
 
-[0-9]+\.[0-9]+              {yylval.cflt = atof(yytext); // TODO
+[-]?[0-9]+\.[0-9]+              {yylval.cflt = atof(yytext); // TODO
                              FILTER(FLT); }
 
 

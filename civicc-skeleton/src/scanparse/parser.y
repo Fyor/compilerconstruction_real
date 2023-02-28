@@ -28,13 +28,14 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
  bool                cbool;
  enum BinOpEnum      cbinop;
  enum Type           ctype;
+ enum MonOpEnum      cmonop;
  node_st             *node;
 }
 
 %locations
 
 %token BRACKET_L BRACKET_R SBRACKET_L SBRACKET_R CBRACKET_L CBRACKET_R COMMA SEMICOLON
-%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND
+%token MINUS PLUS STAR SLASH PERCENT LE LT GE GT EQ NE OR AND NOT
 %token TRUEVAL FALSEVAL LET
 %token INT FLOAT VOID BOOL EXTERN EXPORT DO WHILE IF ELSE FOR RETURN
 
@@ -46,6 +47,8 @@ void AddLocToNode(node_st *node, void *begin_loc, void *end_loc);
 
 %type <node> vardecl expr constant
 %type <ctype> type
+%type <cbinop> binop
+%type <cmonop> monop
 
 %start program
 
@@ -64,7 +67,8 @@ vardecl: vardecl type ID SEMICOLON
     {
         $$ = ASTvardecl($1, $5, NULL, $2, $3);
     }
-    | type ID SEMICOLON {
+    | type ID SEMICOLON 
+    {
         $$ = ASTvardecl(NULL, NULL, NULL, $1, $2);
     }
     | type ID LET expr SEMICOLON
@@ -72,10 +76,25 @@ vardecl: vardecl type ID SEMICOLON
         $$ = ASTvardecl(NULL, $4, NULL, $1, $2);
     };
 
-expr: constant
+expr: BRACKET_L expr BRACKET_R
+      {
+        $$ = $2;
+      }
+    | expr[left] binop[type] expr[right]
+      {
+        $$ = ASTbinop( $left, $right, $type);
+        AddLocToNode($$, &@left, &@right);
+      }
+    | monop expr
+      {
+        $$ = ASTmonop($2, $1);
+        // Moet hier AddLocToNode?
+      }
+    | constant
       {
         $$ = $1;
-      };
+      }
+    ;
 
 constant: FLT
           {
@@ -85,13 +104,33 @@ constant: FLT
           {
             $$ = ASTnum($1);
           }
-        | BL
+        | TRUEVAL
           {
-            $$ = ASTbool($1);
+            $$ = ASTbool(true);
+          }
+        | FALSEVAL
+          {
+            $$ = ASTbool(false);
           };
 
 
 
+binop: PLUS      { $$ = BO_add; }
+     | MINUS     { $$ = BO_sub; }
+     | STAR      { $$ = BO_mul; }
+     | SLASH     { $$ = BO_div; }
+     | PERCENT   { $$ = BO_mod; }
+     | LE        { $$ = BO_le; }
+     | LT        { $$ = BO_lt; }
+     | GE        { $$ = BO_ge; }
+     | GT        { $$ = BO_gt; }
+     | EQ        { $$ = BO_eq; }
+     | OR        { $$ = BO_or; }
+     | AND       { $$ = BO_and; }
+     ;
+
+monop: MINUS    { $$ = MO_neg ;}
+     | NOT      { $$ = MO_not ;}
 
 type: INT { $$ = CT_int; }
     | FLOAT { $$ = CT_float; }

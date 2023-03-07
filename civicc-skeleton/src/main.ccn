@@ -55,8 +55,8 @@ nodeset Link = Decl;
 
 root node Program {
     children {
-        //Decls decls { constructor, mandatory }
-        VarDecl decl { constructor, mandatory }
+        Decls decls { constructor, mandatory }
+        //Fundef fundef {constructor }
     }
 };
 
@@ -82,7 +82,7 @@ node ArrExpr {
 
 node Ids {
     children {
-        Ids next   
+        Ids next
     },
     attributes {
         string name
@@ -97,16 +97,16 @@ node ExprStmt {
 
 node Return {
     children {
-        Expr expr
+        Expr expr {constructor}
     }
 };
 
 node FunCall {
     children {
-        Exprs args
+        Exprs args { constructor }
     },
     attributes {
-        string name,
+        string name { constructor },
         Link decl
     }
 };
@@ -116,56 +116,56 @@ node Cast {
         Expr expr {constructor, mandatory }
     }, 
     attributes {
-        Type type
+        Type type {constructor }
     }
 };
 
 node FunDefs {
     children {
         FunDef fundef { constructor, mandatory },
-        FunDefs next
+        FunDefs next  { constructor }
     }
 };
 
 node FunDef {
     children {
-        FunBody body,
-        Param params
+        FunBody body { constructor },
+        Param params { constructor }
     },
     attributes {
-        Type type,
-        string name,
-        bool export 
+        Type type { constructor },
+        string name { constructor },
+        bool export { constructor }
     }
 };
 
 node FunBody {
     children {
-        VarDecl decls,
-        FunDefs local_fundefs,
-        Stmts stmts
+        VarDecl decls {constructor},
+        FunDefs local_fundefs {constructor},
+        Stmts stmts {constructor}
     }
 };
 
 node IfElse {
     children {
         Expr cond { constructor, mandatory },
-        Stmts then,
-        Stmts else_block
+        Stmts then {constructor},
+        Stmts else_block {constructor}
     }
 };
 
 node While {
     children {
         Expr cond { constructor, mandatory },
-        Stmts block
+        Stmts block {constructor }
     }
 };
 
 node DoWhile {
     children {
         Expr cond { constructor, mandatory },
-        Stmts block
+        Stmts block {constructor}
     }
 };
 
@@ -173,8 +173,8 @@ node For {
     children {
         Expr start_expr { constructor, mandatory },
         Expr stop { constructor, mandatory },
-        Expr step,
-        Stmts block
+        Expr step { constructor },
+        Stmts block { constructor }
     },
 
     attributes {
@@ -208,13 +208,13 @@ node GlobDef {
 
 node Param {
     children {
-        Ids dims,
-        Param next
+        Ids dims { constructor },
+        Param next { constructor }
     },
 
     attributes {
-        string name,
-        Type type
+        string name { constructor },
+        Type type { constructor }
     }
 };
 
@@ -240,7 +240,7 @@ node Stmts {
 
 node Assign {
     children {
-        VarLet let { constructor },
+        VarLet let { constructor, mandatory },
         Expr expr { constructor, mandatory }
     }
 };
@@ -268,11 +268,11 @@ node Monop {
 
 node VarLet {
     children {
-        Exprs indices
+        Exprs indices { constructor }
     }, 
 
     attributes {
-        string name { constructor },
+        string name { constructor, mandatory },
         Link decl
     }
 };

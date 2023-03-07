@@ -1,3 +1,11 @@
-int g = (1 > (2 + 3));
-int g = 4 > 5;
-bool k = !true;
+export void fun(int par, int x, float z) {
+    int x = 43;
+}
+
+void fun() {
+    x = 4;
+}
+
+export void fun() {
+    x = 4;
+}

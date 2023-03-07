@@ -210,6 +210,7 @@ node_st *PRTbinop(node_st *node)
  */
 node_st *PRTmonop(node_st *node)
 {
+  TRAVchildren(node);
   printf("INSIDEnoNOP\n");
   return node;
 }
